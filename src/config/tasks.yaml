@@ -1,0 +1,590 @@
+# =============================================================================
+# Code Review Crew - Tasks Configuration
+# Version: 2.0 - Refactored for Code Review
+# =============================================================================
+# This configuration defines 4 tasks for comprehensive Python code review
+# Each task corresponds to one specialized agent
+# =============================================================================
+
+# =============================================================================
+# GLOBAL TASK RULES
+# =============================================================================
+# INPUT: Python file path provided by user
+# OUTPUT: Structured markdown report with findings
+# FORMAT: Use line numbers, code snippets, severity levels
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# TASK 1: Bug Detection
+# -----------------------------------------------------------------------------
+bug_detection_task:
+  description: |
+    Analyze the Python code file for logical errors, edge cases, and potential bugs.
+
+    ============================================================================
+    CODE FILE TO ANALYZE:
+    ============================================================================
+    File: {code_file_name}
+    File Path: {code_file_path}
+    Total Lines: {total_lines}
+
+    ============================================================================
+    CODE CONTENT:
+    ============================================================================
+    ```python
+    {code_content}
+    ```
+
+    ============================================================================
+    YOUR TASK:
+    ============================================================================
+    Analyze the above code thoroughly for bugs and issues.
+
+    ============================================================================
+    BUG PATTERNS TO DETECT:
+    ============================================================================
+
+    1. **Division by Zero:**
+       Look for: result = x / y where y might be 0
+
+    2. **List Index Errors:**
+       Look for: items[0] without checking if list is empty
+
+    3. **None Attribute Access:**
+       Look for: obj.method() where obj might be None
+
+    4. **Exception Handling Issues:**
+       - Bare except: clauses
+       - Missing exception handling for I/O operations
+       - Silent failures (except: pass)
+
+    5. **Iteration Issues:**
+       - Modifying list while iterating: for item in items: items.remove(item)
+       - Off-by-one errors in range()
+
+    6. **Type Mismatches:**
+       - Comparing incompatible types
+       - String/int confusion
+
+    7. **Resource Leaks:**
+       - Files not closed (not using 'with' statement)
+       - Database connections not closed
+
+    ============================================================================
+    ANALYSIS APPROACH:
+    ============================================================================
+    ```python
+    findings = []
+
+    # Scan for division operations
+    for line_num, line in enumerate(code_lines, 1):
+        if '/' in line and 'import' not in line:
+            # Check if there's zero validation nearby
+            context = code_lines[max(0, line_num-3):line_num+2]
+            if not any('!= 0' in c or '> 0' in c for c in context):
+                findings.append({{
+                    'line': line_num,
+                    'severity': 'CRITICAL',
+                    'issue': 'Potential division by zero',
+                    'code': line.strip()
+                }})
+
+    # Similar checks for other patterns...
+    ```
+
+    ============================================================================
+    OUTPUT FORMAT:
+    ============================================================================
+    Provide findings in this exact structure:
+
+    ## 🐛 Bug Detector Report
+
+    **File**: {code_file_path}
+    **Lines Analyzed**: {{total_lines}}
+    **Issues Found**: {{count}}
+
+    ---
+
+    ### [CRITICAL] Division by Zero Risk (Line 45)
+
+    **Issue**: Variable `count` used as divisor without validation
+
+    **Current Code**:
+    ```python
+    45: average = total / count
+    ```
+
+    **Problem**: If `count` is 0, this will raise `ZeroDivisionError`
+
+    **Suggested Fix**:
+    ```python
+    if count > 0:
+        average = total / count
+    else:
+        average = 0  # or raise ValueError("count cannot be zero")
+    ```
+
+    **Impact**: HIGH - Will crash program if count is 0
+    **Est. Fix Time**: 2 minutes
+
+    ---
+
+    (Repeat for each finding)
+
+    ### Summary
+    - CRITICAL issues: X
+    - HIGH issues: Y
+    - MEDIUM issues: Z
+    - LOW issues: W
+
+    **Recommendation**: Address CRITICAL and HIGH issues before deployment.
+
+  expected_output: |
+    A comprehensive bug detection report containing:
+    - List of all bugs found with severity levels
+    - Specific line numbers and code snippets
+    - Clear explanations of each issue
+    - Suggested fixes with code examples
+    - Summary statistics
+    - Prioritized action items
+
+  agent: bug_detector_agent
+
+# -----------------------------------------------------------------------------
+# TASK 2: Security Analysis
+# -----------------------------------------------------------------------------
+security_analysis_task:
+  description: |
+    Scan the Python code for security vulnerabilities and risks.
+
+    ============================================================================
+    CODE FILE TO ANALYZE:
+    ============================================================================
+    File: {code_file_name}
+    File Path: {code_file_path}
+    Total Lines: {total_lines}
+
+    ============================================================================
+    CODE CONTENT:
+    ============================================================================
+    ```python
+    {code_content}
+    ```
+
+    ============================================================================
+    YOUR TASK:
+    ============================================================================
+    Analyze the above code thoroughly for security vulnerabilities.
+
+    ============================================================================
+    SECURITY CHECKS TO PERFORM:
+    ============================================================================
+
+    1. **SQL Injection:**
+       ```python
+       # VULNERABLE
+       query = f"SELECT * FROM users WHERE id = {{user_id}}"
+       query = "SELECT * FROM users WHERE name = '" + name + "'"
+
+       # Check for:
+       - f-strings in SQL queries
+       - String concatenation in queries
+       - .format() in queries
+       ```
+
+    2. **Command Injection:**
+       ```python
+       # VULNERABLE
+       os.system(f"ping {{hostname}}")
+       subprocess.call(f"ls {{directory}}", shell=True)
+
+       # Check for:
+       - os.system() with user input
+       - subprocess with shell=True
+       - eval() or exec() calls
+       ```
+
+    3. **Hardcoded Secrets:**
+       ```python
+       # CRITICAL
+       API_KEY = "sk-1234567890"
+       PASSWORD = "admin123"
+       SECRET_TOKEN = "my-secret"
+
+       # Check for:
+       - Variables named: key, password, secret, token, api_key
+       - Long alphanumeric strings (>20 chars)
+       - AWS keys, database URLs with credentials
+       ```
+
+    4. **Path Traversal:**
+       ```python
+       # VULNERABLE
+       filename = request.GET['file']
+       with open(filename) as f:  # No validation!
+
+       # Check for:
+       - open() with user-provided paths
+       - Missing path validation
+       - No sanitization of file paths
+       ```
+
+    5. **Weak Cryptography:**
+       ```python
+       # WEAK
+       hashlib.md5(password)
+       hashlib.sha1(password)
+       random.randint()  # for security tokens
+
+       # Check for:
+       - MD5/SHA1 for passwords (should use bcrypt/argon2)
+       - random module for security (should use secrets)
+       - Hardcoded encryption keys
+       ```
+
+    6. **Input Validation:**
+       ```python
+       # MISSING VALIDATION
+       age = int(request.POST['age'])  # No try-except
+       user_id = request.args.get('id')  # No type check
+
+       # Check for:
+       - Direct type conversions without validation
+       - Missing input sanitization
+       - No range/format validation
+       ```
+
+    ============================================================================
+    ANALYSIS APPROACH:
+    ============================================================================
+    ```python
+    import re
+
+    vulnerabilities = []
+
+    # Check for SQL injection patterns
+    sql_patterns = [
+        r'f".*SELECT.*\{{.*\}}"',  # f-string in SQL
+        r'"SELECT.*\+.*\+',      # String concatenation
+        r'\.format\(.*SELECT',   # .format() in SQL
+    ]
+
+    for line_num, line in enumerate(code_lines, 1):
+        for pattern in sql_patterns:
+            if re.search(pattern, line, re.IGNORECASE):
+                vulnerabilities.append({{
+                    'line': line_num,
+                    'severity': 'CRITICAL',
+                    'type': 'SQL Injection',
+                    'cwe': 'CWE-89',
+                    'code': line.strip()
+                }})
+
+    # Check for hardcoded secrets
+    secret_patterns = {{
+        'api_key': r'API_KEY\s*=\s*["\'][\w\-]{{20,}}["\']',
+        'password': r'PASSWORD\s*=\s*["\'][^"\']+["\']',
+        'secret': r'SECRET\s*=\s*["\'][^"\']+["\']',
+    }}
+
+    for line_num, line in enumerate(code_lines, 1):
+        for secret_type, pattern in secret_patterns.items():
+            if re.search(pattern, line, re.IGNORECASE):
+                vulnerabilities.append({{
+                    'line': line_num,
+                    'severity': 'CRITICAL',
+                    'type': f'Hardcoded {{{{secret_type}}}}',
+                    'cwe': 'CWE-798',
+                    'code': line.strip()
+                }})
+
+    # Similar checks for other vulnerability types...
+    ```
+
+    ============================================================================
+    OUTPUT FORMAT:
+    ============================================================================
+
+    ## 🔒 Security Analyzer Report
+
+    **File**: {code_file_path}
+    **Vulnerabilities Found**: {{count}}
+    **Risk Level**: CRITICAL/HIGH/MEDIUM/LOW
+
+    ---
+
+    ### [CRITICAL] SQL Injection Vulnerability (Line 67)
+
+    **CWE**: CWE-89 - Improper Neutralization of Special Elements
+    **Risk**: Attackers can execute arbitrary SQL commands
+
+    **Vulnerable Code**:
+    ```python
+    67: query = f"SELECT * FROM users WHERE id = {{user_id}}"
+    68: cursor.execute(query)
+    ```
+
+    **Attack Scenario**:
+    An attacker could provide: `user_id = "1 OR 1=1"` to dump all users.
+
+    **Secure Alternative**:
+    ```python
+    query = "SELECT * FROM users WHERE id = %s"
+    cursor.execute(query, (user_id,))  # Parameterized query
+    ```
+
+    **Priority**: IMMEDIATE - Fix before deployment
+    **OWASP**: A03:2021 - Injection
+
+    ---
+
+    (Repeat for each vulnerability)
+
+    ### Security Summary
+    - CRITICAL vulnerabilities: X (require immediate attention)
+    - HIGH vulnerabilities: Y (fix before release)
+    - MEDIUM vulnerabilities: Z (address in next sprint)
+    - Code security score: XX/100
+
+    ### Recommended Actions
+    1. [IMMEDIATE] Fix SQL injection on line 67
+    2. [IMMEDIATE] Remove hardcoded API key on line 23
+    3. [HIGH] Add input validation on lines 45, 78, 92
+
+  expected_output: |
+    A detailed security analysis report containing:
+    - All vulnerabilities with CWE classifications
+    - Severity levels and risk assessments
+    - Attack scenarios and exploitation methods
+    - Secure code alternatives
+    - OWASP mappings where applicable
+    - Prioritized remediation plan
+
+  agent: security_analyzer_agent
+  context:
+    - bug_detection_task
+
+# -----------------------------------------------------------------------------
+# TASK 3: Performance Analysis
+# -----------------------------------------------------------------------------
+performance_analysis_task:
+  description: |
+    Identify performance bottlenecks and optimization opportunities.
+
+    ============================================================================
+    CODE FILE TO ANALYZE:
+    ============================================================================
+    File: {code_file_name}
+    File Path: {code_file_path}
+    Total Lines: {total_lines}
+
+    ============================================================================
+    CODE CONTENT:
+    ============================================================================
+    ```python
+    {code_content}
+    ```
+
+    ============================================================================
+    YOUR TASK:
+    ============================================================================
+    Analyze the above code thoroughly for performance issues and bottlenecks.
+
+    ============================================================================
+    PERFORMANCE PATTERNS TO CHECK:
+    ============================================================================
+
+    1. **Nested Loops (O(n²)):**
+       ```python
+       # INEFFICIENT
+       for i in range(len(data)):
+           for j in range(len(data)):
+               if data[i] == data[j]:
+                   ...
+       ```
+
+    2. **String Concatenation in Loops:**
+       ```python
+       # O(n²) - Creates new string each time
+       result = ""
+       for item in items:
+           result += str(item)
+
+       # O(n) - Better
+       result = ''.join(str(item) for item in items)
+       ```
+
+    3. **List Membership Testing:**
+       ```python
+       # O(n) per lookup
+       if item in my_list:
+           ...
+
+       # O(1) per lookup
+       my_set = set(my_list)
+       if item in my_set:
+           ...
+       ```
+
+    4. **Redundant Computations:**
+       ```python
+       # Recalculates len() every iteration
+       for i in range(len(items)):
+           ...
+
+       # Cache the length
+       n = len(items)
+       for i in range(n):
+           ...
+       ```
+
+    5. **Not Using Generators:**
+       ```python
+       # Loads entire file into memory
+       lines = file.readlines()
+
+       # Memory-efficient
+       for line in file:
+           ...
+       ```
+
+    ============================================================================
+    OUTPUT FORMAT:
+    ============================================================================
+
+    ## ⚡ Performance Analyzer Report
+
+    **File**: {code_file_path}
+    **Performance Issues**: {{count}}
+
+    ---
+
+    ### [HIGH] Nested Loop Inefficiency (Line 34-37)
+
+    **Complexity**: O(n²) → Can be O(n)
+    **Impact**: ~75% performance improvement for n=1000
+
+    **Current Implementation**:
+    ```python
+    34: for i in range(len(data)):
+    35:     for j in range(len(data)):
+    36:         if data[i] == data[j]:
+    37:             duplicates.append(data[i])
+    ```
+    **Complexity**: O(n²) = 1,000,000 operations for 1000 items
+
+    **Optimized Version**:
+    ```python
+    seen = set()
+    duplicates = []
+    for item in data:
+        if item in seen:
+            duplicates.append(item)
+        seen.add(item)
+    ```
+    **Complexity**: O(n) = 1,000 operations for 1000 items
+
+    **Performance Gain**: 99.9% faster for large datasets
+    **Trade-off**: Slightly more memory usage (acceptable)
+    **Priority**: HIGH
+
+    ---
+
+    ### Summary
+    - Algorithm improvements: X opportunities
+    - Memory optimizations: Y opportunities
+    - Overall performance score: XX/100
+    - Estimated total speedup: XX%
+
+  expected_output: |
+    A performance analysis report with:
+    - Complexity analysis (Big O notation)
+    - Performance bottlenecks with line numbers
+    - Optimized code alternatives
+    - Estimated performance gains
+    - Memory usage analysis
+    - Prioritized optimization recommendations
+
+  agent: performance_analyzer_agent
+  context:
+    - bug_detection_task
+    - security_analysis_task
+
+# -----------------------------------------------------------------------------
+# TASK 4: Documentation Review & Report Generation
+# -----------------------------------------------------------------------------
+documentation_review_task:
+  description: |
+    Review code documentation and generate the FINAL COMPLETE REPORT.
+
+    ============================================================================
+    CODE FILE TO ANALYZE:
+    ============================================================================
+    File: {code_file_name}
+    File Path: {code_file_path}
+    Total Lines: {total_lines}
+
+    ============================================================================
+    CODE CONTENT:
+    ============================================================================
+    ```python
+    {code_content}
+    ```
+
+    ============================================================================
+    YOUR AUTHORITATIVE TASK:
+    ============================================================================
+    You are the "Final Report Compiler". Your job is to:
+    1.  Read the outputs from the Bug Detector, Security Analyzer, and Performance Analyzer.
+    2.  Perform your own Documentation Analysis.
+    3.  AGGREGATE EVERYTHING into one single, massive Markdown string.
+
+    CRITICAL RULE:
+    Your "Final Answer" MUST BE the actual Markdown report content itself.
+    Do NOT output "I have generated the report".
+    Do NOT output "See the report above".
+    The text you output IS the report.
+
+    If you don't include the actual text of the bug findings, security vulnerabilities,
+    and performance issues in your final answer, you have FAILED.
+
+    ============================================================================
+    OUTPUT STRUCTURE (Your Final Answer MUST look like this):
+    ============================================================================
+
+    ## 📊 COMPREHENSIVE CODE REVIEW REPORT
+
+    **File Analyzed**: {code_file_name}
+    **Review Date**: {datetime}
+    ...
+
+    ## Executive Summary
+    ...
+
+    ## Detailed Findings
+
+    ### 🐛 Bug Detection Results
+    (COPY-PASTE the ENTIRE content from the Bug Detector's output here. Do not summarize it.)
+
+    ### 🔒 Security Analysis Results
+    (COPY-PASTE the ENTIRE content from the Security Analyzer's output here. Do not summarize it.)
+
+    ### ⚡ Performance Analysis Results
+    (COPY-PASTE the ENTIRE content from the Performance Analyzer's output here. Do not summarize it.)
+
+    ### 📝 Documentation Review Results
+    (Insert your own detailed documentation findings here)
+
+    ... (rest of the sections)
+
+    ## Estimated Remediation Time
+    ...
+  expected_output: |
+    A single STRING containing the completely formatted Markdown report.
+    It must start with "# Code Review Report" or "## 📊 COMPREHENSIVE CODE REVIEW REPORT".
+    It must contain all the details from the other agents.
+  agent: documentation_analyzer_agent
+  context:
+    - bug_detection_task
+    - security_analysis_task
+    - performance_analysis_task

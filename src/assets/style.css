@@ -1,0 +1,109 @@
+/* Main Container Setup */
+.stApp {
+  background-color: #0e1117;
+  background-image: radial-gradient(
+      circle at 10% 20%,
+      rgba(0, 255, 255, 0.1) 0%,
+      transparent 20%
+    ),
+    radial-gradient(
+      circle at 90% 80%,
+      rgba(255, 0, 255, 0.1) 0%,
+      transparent 20%
+    );
+  color: #ffffff;
+  font-family: "Inter", sans-serif;
+}
+
+/* Glassmorphism Cards */
+div.css-1r6slb0,
+div.stCmd,
+div.stDataFrame,
+div.css-12oz5g7 {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 15px;
+  padding: 20px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* Gradient Titles */
+h1 {
+  background: linear-gradient(120deg, #00d2ff 0%, #3a7bd5 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-weight: 800;
+  letter-spacing: -1px;
+}
+
+h2,
+h3 {
+  color: #e0e0e0;
+  font-weight: 600;
+}
+
+/* Buttons */
+.stButton > button {
+  background: linear-gradient(90deg, #00d2ff 0%, #3a7bd5 100%);
+  color: white;
+  border: none;
+  border-radius: 8px;
+  padding: 10px 24px;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 210, 255, 0.3);
+}
+
+.stButton > button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 210, 255, 0.5);
+}
+
+/* File Uploader */
+.stFileUploader {
+  border: 2px dashed rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  padding: 20px;
+  transition: border-color 0.3s ease;
+}
+
+.stFileUploader:hover {
+  border-color: #00d2ff;
+}
+
+/* Metrics and Data Display */
+div[data-testid="metric-container"] {
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 10px;
+  padding: 15px;
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Markdown Customization */
+code {
+  background-color: rgba(0, 0, 0, 0.3) !important;
+  color: #00ff9d !important;
+  border-radius: 4px;
+  padding: 2px 6px;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0e1117;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 5px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
