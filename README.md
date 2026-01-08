@@ -1,358 +1,185 @@
-# 🤖 Code Review Crew
+# Code Review Crew
 
-**AI-Powered Multi-Agent Code Review System**
+Multi-agent code review system I built to catch bugs and security issues before they hit production.
 
-An intelligent code analysis tool powered by 4 specialized AI agents that collaboratively review Python code for bugs, security vulnerabilities, performance issues, and documentation quality.
-
----
-
-## 🎯 Features
-
-### Four Specialized AI Agents
-
-1. **🐛 Bug Detector Agent**
-   - Identifies logical errors and edge cases
-   - Detects exception handling issues
-   - Finds resource leaks and None-handling problems
-   - Catches off-by-one errors and type mismatches
-
-2. **🔒 Security Analyzer Agent**
-   - Scans for OWASP Top 10 vulnerabilities
-   - Detects SQL/Command injection risks
-   - Identifies hardcoded secrets and weak cryptography
-   - Flags insecure file operations
-
-3. **⚡ Performance Analyzer Agent**
-   - Analyzes algorithmic complexity (Big O)
-   - Identifies inefficient loops and data structures
-   - Detects redundant computations
-   - Suggests memory optimizations
-
-4. **📝 Documentation Analyzer Agent**
-   - Reviews docstring coverage
-   - Checks type hints
-   - Evaluates code clarity and naming
-   - Generates comprehensive final report
+I wanted to see if I could get AI agents to work together on a real problem - turns out they're pretty good at finding things I miss when reviewing my own code.
 
 ---
 
-## 🚀 Quick Start
+## How It Works
 
-### Installation
+I set up 4 different agents, each focused on a specific aspect of code review:
+
+**Bug Detector** - Looks for logical errors, edge cases, exception handling issues. Basically catches the stuff that would blow up in production at 2am.
+
+**Security Analyzer** - Scans for common vulnerabilities (SQL injection, hardcoded secrets, etc.). I based this on OWASP guidelines since that's what most companies care about.
+
+**Performance Analyzer** - Checks algorithmic complexity and inefficient patterns. Won't catch everything a profiler would, but finds obvious bottlenecks.
+
+**Documentation Analyzer** - Reviews docstrings and type hints, then puts together the final report. I gave this one the summarizer role since it sees all the other findings.
+
+---
+
+## Getting Started
 
 ```bash
-# Clone or navigate to project
-cd code_review_crew
-
 # Install dependencies
 pip install -r requirements.txt
 
-# Set your API key
-export OPENAI_API_KEY="your-api-key-here"
-# OR
-export ANTHROPIC_API_KEY="your-api-key-here"
-```
+# You'll need an API key from OpenAI or Anthropic
+export OPENAI_API_KEY="your-key-here"
 
-### Basic Usage
-
-```bash
-# Review a Python file
+# Run it on any Python file
 python src/code_review_crew.py examples/buggy_code.py
-
-# Specify custom output directory
-python src/code_review_crew.py my_script.py --output reports/
-
-# Get help
-python src/code_review_crew.py --help
 ```
 
-### Python API
+You can also use it in your own Python code:
 
 ```python
 from src.code_review_crew import CodeReviewCrew
 
-# Initialize crew
-crew = CodeReviewCrew(code_file_path="examples/buggy_code.py")
-
-# Run review
+crew = CodeReviewCrew(code_file_path="my_script.py")
 result = crew.run()
-
-# Result is saved to output/ directory
+# Check the output/ folder for your report
 ```
 
 ---
 
-## 📊 Sample Output
+## What the Reports Look Like
 
-```markdown
-# Code Review Report
+When you run it, you get a markdown report that breaks down everything:
 
-**File**: buggy_code.py
-**Date**: 2025-01-07
-**Overall Score**: 42/100
+- Overall risk score
+- Specific issues grouped by severity (critical, high, medium)
+- Line numbers where problems are
+- Suggested fixes with code examples
 
-## Executive Summary
+For example, it caught a division by zero bug I had where I forgot to check if a list was empty before calculating the average. Gave me the exact fix too.
 
-### Key Findings
-- 🐛 **Bugs**: 12 issues found (3 critical)
-- 🔒 **Security**: 7 vulnerabilities (4 critical)
-- ⚡ **Performance**: 5 bottlenecks identified
-- 📝 **Documentation**: 35% coverage
-
-### Risk Assessment
-**Overall Risk Level**: CRITICAL
-
-### Critical Actions Required
-1. [IMMEDIATE] Fix SQL injection (Line 27)
-2. [IMMEDIATE] Handle division by zero (Line 19)
-3. [IMMEDIATE] Remove hardcoded API key (Line 12)
+The agents also summarize the findings at the top, so you know immediately if there's something critical to fix.
 
 ---
 
-## 🐛 Bug Detection Results
-
-### [CRITICAL] Division by Zero Risk (Line 19)
-
-**Issue**: Variable `ages` used as divisor without validation
-
-**Current Code**:
-```python
-19: average = total / len(ages)
-```
-
-**Suggested Fix**:
-```python
-if len(ages) > 0:
-    average = total / len(ages)
-else:
-    raise ValueError("Cannot calculate average of empty list")
-```
-
-...
-```
-
----
-
-## 📁 Project Structure
+## Project Structure
 
 ```
 code_review_crew/
 ├── src/
-│   ├── code_review_crew.py    # Main crew implementation
+│   ├── code_review_crew.py    # Main orchestration logic
 │   ├── config/
-│   │   ├── agents.yaml         # Agent configurations
-│   │   └── tasks.yaml          # Task definitions
-│   └── tools/                  # Custom tools (future)
+│   │   ├── agents.yaml         # Where I defined each agent's role
+│   │   └── tasks.yaml          # What each agent is supposed to do
 ├── examples/
-│   └── buggy_code.py           # Example file with intentional bugs
-├── output/                     # Generated reports
-├── tests/                      # Unit tests (future)
-├── requirements.txt            # Python dependencies
-└── README.md                   # This file
+│   └── buggy_code.py           # Test file with intentional bugs
+├── output/                     # Reports get saved here
+└── requirements.txt
 ```
 
 ---
 
-## 🔧 Configuration
+## Configuration
 
-### Agent Configuration (`src/config/agents.yaml`)
+All the agent behavior is defined in YAML files:
 
-Customize agent behaviors, roles, and backstories.
+**agents.yaml** - Each agent's role, goals, and "personality". I spent some time tuning these to make sure they don't overlap.
 
-```yaml
-bug_detector_agent:
-  role: "Senior Bug Detective & Logic Analyzer"
-  goal: "Identify logical errors and edge cases..."
-  backstory: "You are a veteran software engineer..."
-  verbose: true
-  memory: true
-```
+**tasks.yaml** - What each agent analyzes and what format they should output.
 
-### Task Configuration (`src/config/tasks.yaml`)
-
-Define analysis tasks and expected outputs.
-
-```yaml
-bug_detection_task:
-  description: "Analyze the Python code file for bugs..."
-  expected_output: "A comprehensive bug detection report..."
-  agent: bug_detector_agent
-```
+You can tweak these if you want different focus areas or reporting styles.
 
 ---
 
-## 📈 Use Cases
+## Ways I've Used This
 
-### 1. Pre-Commit Code Review
-```bash
-# Add to pre-commit hook
-python src/code_review_crew.py $(git diff --name-only --cached | grep .py$)
-```
+**Learning** - I run it on my old code to see what I missed. It's humbling but helpful.
 
-### 2. CI/CD Integration
-```yaml
-# .github/workflows/code-review.yml
-- name: AI Code Review
-  run: |
-    python src/code_review_crew.py src/**/*.py --output reports/
-```
+**Pre-commit checks** - Sometimes I'll run it before pushing code to catch obvious issues.
 
-### 3. Learning Tool
-```bash
-# Review your own code to learn best practices
-python src/code_review_crew.py my_learning_project.py
-```
+**Legacy code** - Helped me assess some old scripts I inherited. Found several SQL injection risks I didn't notice on first read.
 
-### 4. Legacy Code Assessment
-```bash
-# Assess technical debt in old codebases
-python src/code_review_crew.py legacy_system.py
-```
+You could probably integrate this into CI/CD, but keep in mind the API calls cost money and take time (couple minutes per file).
 
 ---
 
-## 🎓 What This Project Demonstrates
+## What I Learned Building This
 
-**For Portfolio/Interviews:**
+This project taught me a lot about working with AI agents:
 
-✅ **AI Agent Orchestration** - Multi-agent collaboration with CrewAI
-✅ **LLM Application Development** - Practical use of language models
-✅ **Software Engineering** - Clean code architecture, error handling
-✅ **Security Awareness** - OWASP Top 10, secure coding practices
-✅ **Performance Optimization** - Algorithm complexity analysis
-✅ **Production Readiness** - CLI interface, configuration management
+- How to coordinate multiple LLM agents without them stepping on each other
+- Designing prompts that give consistent, useful output
+- Managing context between agents (they need to pass info to each other)
+- The tradeoffs between agent autonomy and control
 
-**Technical Skills Shown:**
-- Python best practices
-- YAML configuration
-- Static code analysis concepts
-- Report generation
-- File I/O and path handling
-- Exception handling
-- Type hints and documentation
+Also got deeper into:
+- CrewAI framework
+- YAML-based configuration
+- Building CLI tools that people might actually use
+- OWASP security patterns
 
 ---
 
-## 🧪 Testing
+## Testing
 
-### Run on Example File
-```bash
-python src/code_review_crew.py examples/buggy_code.py
-```
+I included `examples/buggy_code.py` which has intentional bugs. Run the crew on that to see what kind of output you get - should find around 25 issues.
 
-Expected: Report with ~25 issues found across all categories.
-
-### Create Your Own Test File
-```python
-# test_me.py
-def divide(a, b):
-    return a / b  # Missing zero check!
-
-result = divide(10, 0)  # Boom!
-```
-
-```bash
-python src/code_review_crew.py test_me.py
-```
+Or create your own buggy file and see what it catches.
 
 ---
 
-## 📝 Requirements
+## Requirements
 
-- Python 3.8+
-- OpenAI API key OR Anthropic API key
-- Internet connection (for LLM API calls)
+- Python 3.8 or higher
+- API key from OpenAI or Anthropic (this costs a bit to run)
+- Internet connection
 
-See `requirements.txt` for full dependencies.
-
----
-
-## 🚧 Limitations & Future Enhancements
-
-### Current Limitations
-- Only supports Python files
-- Requires LLM API (costs money)
-- Analysis time depends on file size (1-5 minutes)
-- English-only reports
-
-### Planned Features
-- [ ] Support for JavaScript, TypeScript, Go, Java
-- [ ] PDF report generation
-- [ ] Integration with GitHub Actions
-- [ ] Custom rule definitions
-- [ ] Batch file processing
-- [ ] Diff-based analysis (only review changes)
-- [ ] VS Code extension
-- [ ] Local LLM support (Ollama)
+Full dependencies are in `requirements.txt`.
 
 ---
 
-## 🤝 Contributing
+## Limitations
 
-This is a portfolio project, but suggestions are welcome!
+Right now this only works with Python files. I'd like to add support for JavaScript/TypeScript eventually.
 
-1. Test the tool on your code
-2. Open issues for bugs found
-3. Suggest new features
-4. Share interesting use cases
+The API calls cost money - not a lot, but something to be aware of if you're running it on huge files.
 
----
+Takes a few minutes per file since each agent has to make LLM calls.
 
-## 📄 License
+## Ideas for Future Improvements
 
-MIT License - Feel free to use this project for learning and portfolio purposes.
-
----
-
-## 👤 Author
-
-**Your Name**
-AI Engineer | Python Developer | LLM Enthusiast
-
-- Portfolio: [your-portfolio.com]
-- LinkedIn: [linkedin.com/in/yourprofile]
-- GitHub: [github.com/yourusername]
+- Support other languages (JavaScript, Go, Java)
+- Batch processing for multiple files
+- Only analyze git diffs instead of entire files
+- Local LLM support so you don't need API keys
+- Custom rules that you can define yourself
 
 ---
 
-## 🙏 Acknowledgments
+## Contributing
 
-- **CrewAI** - Multi-agent framework
-- **Anthropic/OpenAI** - LLM providers
-- **OWASP** - Security guidelines
-- **Python Community** - Best practices and patterns
+This is mainly a learning project for me, but if you find bugs or have ideas, feel free to open an issue.
 
 ---
 
-## 📞 Support
+## License
 
-Having issues? Want to discuss the project?
-
-1. Check `examples/buggy_code.py` for expected behavior
-2. Verify your API key is set correctly
-3. Ensure Python 3.8+ is installed
-4. Check `output/` for generated reports
+MIT - use it however you want.
 
 ---
 
-## 🎯 Interview Talking Points
+## Tech Stack
 
-**"Tell me about a project you built":**
-
-> "I built an AI-powered code review system using multi-agent orchestration. Four specialized AI agents collaborate to analyze Python code for bugs, security vulnerabilities, performance issues, and documentation quality.
->
-> The system uses CrewAI for agent coordination and LLMs for analysis. Each agent is an expert in their domain - bugs, security, performance, or documentation.
->
-> **Tech stack**: Python, CrewAI, LangChain, OpenAI/Anthropic APIs
->
-> **Key challenges solved**:
-> - Designing agent roles that don't overlap
-> - Passing context between agents
-> - Generating actionable, specific recommendations
-> - Creating a clean CLI interface
->
-> **Business value**: Catches bugs before code review, teaches best practices, identifies security risks early."
+- Python
+- CrewAI for agent orchestration
+- OpenAI/Anthropic LLMs
+- YAML for configuration
+- Markdown for reports
 
 ---
 
-**Built with ❤️ and 🤖 AI**
+## Troubleshooting
+
+**Nothing's happening** - Check that your API key is set correctly as an environment variable.
+
+**Reports look weird** - Make sure you're running it on Python files, not other languages.
+
+**Taking forever** - Yeah, LLM calls are slow. Larger files take longer. Grab a coffee.
