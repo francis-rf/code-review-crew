@@ -1,185 +1,109 @@
-# Code Review Crew
+# Code Review Crew 🤖🔎
 
-Multi-agent code review system I built to catch bugs and security issues before they hit production.
+I built this multi-agent system to solve a problem I constantly face: catching subtle bugs and security flaws _before_ they become production nightmares.
 
-I wanted to see if I could get AI agents to work together on a real problem - turns out they're pretty good at finding things I miss when reviewing my own code.
-
----
-
-## How It Works
-
-I set up 4 different agents, each focused on a specific aspect of code review:
-
-**Bug Detector** - Looks for logical errors, edge cases, exception handling issues. Basically catches the stuff that would blow up in production at 2am.
-
-**Security Analyzer** - Scans for common vulnerabilities (SQL injection, hardcoded secrets, etc.). I based this on OWASP guidelines since that's what most companies care about.
-
-**Performance Analyzer** - Checks algorithmic complexity and inefficient patterns. Won't catch everything a profiler would, but finds obvious bottlenecks.
-
-**Documentation Analyzer** - Reviews docstrings and type hints, then puts together the final report. I gave this one the summarizer role since it sees all the other findings.
+Originally, this was just a CLI tool, but **I recently overhauled it** to include a full **Streamlit Web UI** and **GitHub Repository Integration**. Now, instead of manually running scripts, I can just paste a repo URL or upload a file and let the agents go to work.
 
 ---
 
-## Getting Started
+## 🚀 Why I Built This
+
+I wanted to see if specialized AI agents could work together like a real code review team. Turns out, they're surprisingly good at it.
+
+- **The Problem**: I often miss things like checking for empty lists or subtle SQL injection risks when I'm tired.
+- **The Solution**: A "crew" of agents where each one wears a specific hat (Security, Performance, Bug Hunting).
+
+---
+
+## ✨ New Features I Added
+
+### 🖥️ Interactive Web UI
+
+I realized running CLI commands wasn't the best experience effectively, so I built a **Streamlit interface**.
+
+- **Upload Files Directly**: Drag and drop python files for instant analysis.
+- **Visual Reports**: See risk scores and issues formatted nicely, not just raw text.
+
+### 🔗 GitHub Integration
+
+I added a feature to **pull code directly from GitHub**.
+
+- Paste any public repository URL.
+- The system clones it, analyzes the structure, and lets you pick specific files to review.
+- Saves me the hassle of manually downloading files just to check them.
+
+---
+
+## 🧠 The Crew (My Agents)
+
+I set up 4 different agents to mimic a human review process:
+
+1.  **Bug Detector**: Looks for logical errors, edge cases, and exception handling issues. Basically looks for things that will crash the app.
+2.  **Security Analyzer**: Scans for vulnerabilities like SQL injection, hardcoded secrets, and XSS. I based its rules on OWASP guidelines.
+3.  **Performance Analyzer**: Checks for algorithmic bottlenecks and inefficient loops.
+4.  **Documentation Analyzer**: Reviews docstrings and then compiles the final "Senior Engineer" style report.
+
+---
+
+## 🛠️ Getting Started
+
+### Prerequisites
+
+- Python 3.8+
+- An API key (OpenAI or Anthropic)
+
+### Installation
 
 ```bash
+# Clone the repo
+git clone https://github.com/francis-rf/code-review-crew.git
+cd code_review_crew
+
 # Install dependencies
 pip install -r requirements.txt
-
-# You'll need an API key from OpenAI or Anthropic
-export OPENAI_API_KEY="your-key-here"
-
-# Run it on any Python file
-python src/code_review_crew.py examples/buggy_code.py
 ```
 
-You can also use it in your own Python code:
+### Running the App
 
-```python
-from src.code_review_crew import CodeReviewCrew
+I made it super easy to start. Just run the Streamlit app:
 
-crew = CodeReviewCrew(code_file_path="my_script.py")
-result = crew.run()
-# Check the output/ folder for your report
+```bash
+streamlit run src/app.py
 ```
+
+Then open `http://localhost:8501` in your browser.
 
 ---
 
-## What the Reports Look Like
+## 📂 Project Structure
 
-When you run it, you get a markdown report that breaks down everything:
-
-- Overall risk score
-- Specific issues grouped by severity (critical, high, medium)
-- Line numbers where problems are
-- Suggested fixes with code examples
-
-For example, it caught a division by zero bug I had where I forgot to check if a list was empty before calculating the average. Gave me the exact fix too.
-
-The agents also summarize the findings at the top, so you know immediately if there's something critical to fix.
-
----
-
-## Project Structure
+Here's how I organized the code:
 
 ```
 code_review_crew/
 ├── src/
-│   ├── code_review_crew.py    # Main orchestration logic
+│   ├── app.py                  # The new Streamlit Web UI entry point
+│   ├── crew.py                 # The core CrewAI orchestration logic
 │   ├── config/
-│   │   ├── agents.yaml         # Where I defined each agent's role
-│   │   └── tasks.yaml          # What each agent is supposed to do
-├── examples/
-│   └── buggy_code.py           # Test file with intentional bugs
-├── output/                     # Reports get saved here
+│       ├── agents.yaml         # Where I define the agent "personalities"
+│       └── tasks.yaml          # The specific instructions for each agent
+├── examples/                   # Test files I use to verify the agents
+├── output/                     # Generated reports go here
 └── requirements.txt
 ```
 
 ---
 
-## Configuration
+## 💡 What I Learned
 
-All the agent behavior is defined in YAML files:
+Building this taught me a lot about **Agentic Workflows**:
 
-**agents.yaml** - Each agent's role, goals, and "personality". I spent some time tuning these to make sure they don't overlap.
-
-**tasks.yaml** - What each agent analyzes and what format they should output.
-
-You can tweak these if you want different focus areas or reporting styles.
+- **Context is King**: Agents need clear, specific goals (YAML config) or they get sidetracked.
+- **UI Matters**: Moving from CLI to Streamlit made the tool 10x more usable for quick checks.
+- **Handling Large Codebases**: Integrating GitHub cloning was tricky (keeping it efficient), but having agents read directly from repo files is a game changer.
 
 ---
 
-## Ways I've Used This
+## 🛡️ License
 
-**Learning** - I run it on my old code to see what I missed. It's humbling but helpful.
-
-**Pre-commit checks** - Sometimes I'll run it before pushing code to catch obvious issues.
-
-**Legacy code** - Helped me assess some old scripts I inherited. Found several SQL injection risks I didn't notice on first read.
-
-You could probably integrate this into CI/CD, but keep in mind the API calls cost money and take time (couple minutes per file).
-
----
-
-## What I Learned Building This
-
-This project taught me a lot about working with AI agents:
-
-- How to coordinate multiple LLM agents without them stepping on each other
-- Designing prompts that give consistent, useful output
-- Managing context between agents (they need to pass info to each other)
-- The tradeoffs between agent autonomy and control
-
-Also got deeper into:
-- CrewAI framework
-- YAML-based configuration
-- Building CLI tools that people might actually use
-- OWASP security patterns
-
----
-
-## Testing
-
-I included `examples/buggy_code.py` which has intentional bugs. Run the crew on that to see what kind of output you get - should find around 25 issues.
-
-Or create your own buggy file and see what it catches.
-
----
-
-## Requirements
-
-- Python 3.8 or higher
-- API key from OpenAI or Anthropic (this costs a bit to run)
-- Internet connection
-
-Full dependencies are in `requirements.txt`.
-
----
-
-## Limitations
-
-Right now this only works with Python files. I'd like to add support for JavaScript/TypeScript eventually.
-
-The API calls cost money - not a lot, but something to be aware of if you're running it on huge files.
-
-Takes a few minutes per file since each agent has to make LLM calls.
-
-## Ideas for Future Improvements
-
-- Support other languages (JavaScript, Go, Java)
-- Batch processing for multiple files
-- Only analyze git diffs instead of entire files
-- Local LLM support so you don't need API keys
-- Custom rules that you can define yourself
-
----
-
-## Contributing
-
-This is mainly a learning project for me, but if you find bugs or have ideas, feel free to open an issue.
-
----
-
-## License
-
-MIT - use it however you want.
-
----
-
-## Tech Stack
-
-- Python
-- CrewAI for agent orchestration
-- OpenAI/Anthropic LLMs
-- YAML for configuration
-- Markdown for reports
-
----
-
-## Troubleshooting
-
-**Nothing's happening** - Check that your API key is set correctly as an environment variable.
-
-**Reports look weird** - Make sure you're running it on Python files, not other languages.
-
-**Taking forever** - Yeah, LLM calls are slow. Larger files take longer. Grab a coffee.
+MIT. Feel free to use this code, break it, and learn from it!
