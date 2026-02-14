@@ -5,21 +5,20 @@
 crewai>=0.28.0
 crewai-tools>=0.2.0
 
-# LLM Providers (choose one or both)
+# LLM Providers
 openai>=1.0.0
 anthropic>=0.18.0
 
+# FastAPI Framework
+fastapi>=0.104.0
+uvicorn[standard]>=0.24.0
+python-multipart>=0.0.6
+
 # Configuration
 pyyaml>=6.0.1
+python-dotenv>=1.0.0
 
-# Utipyyaml
-crewai
-python-dotenv
-streamlit
-gitpython>=1.0.0
-rich>=13.0.0  # Better terminal output
+# Utilities
+gitpython>=3.1.0
+rich>=13.0.0
 
-# Optional: Enhanced features
-# reportlab>=4.0.0  # For PDF generation (future)
-# pylint>=3.0.0  # For static analysis (future)
-# black>=23.0.0  # For code formatting checks (future)

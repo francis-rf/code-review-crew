@@ -1,0 +1,20 @@
+[project]
+name = "3-crew-ai-projects"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "anthropic>=0.18.0",
+    "crewai>=0.28.0",
+    "crewai-tools>=0.2.0",
+    "fastapi>=0.104.0",
+    "gitpython>=3.1.0",
+    "openai>=1.0.0",
+    "python-dotenv>=1.0.0",
+    "python-multipart>=0.0.6",
+    "pyyaml>=6.0.1",
+    "rich>=13.0.0",
+    "streamlit>=1.54.0",
+    "uvicorn[standard]>=0.24.0",
+]

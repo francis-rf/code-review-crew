@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Code Review Crew AI</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>AI Code Review Crew</h1>
+            <p class="subtitle">Multi-Agent Code Analysis System</p>
+        </header>
+
+        <div class="mode-selector">
+            <button class="mode-btn active" data-mode="upload">📤 upload file</button>
+            <button class="mode-btn" data-mode="github">🐙 git hub repo</button>
+        </div>
+
+        <!-- Upload Mode -->
+        <div id="upload-mode" class="mode-content active">
+            <div class="upload-section">
+                <input type="file" id="file-input" accept=".py" hidden>
+                <div id="file-info" class="file-info hidden"></div>
+                <button id="review-btn" class="btn-primary hidden">🚀 Start Code Review</button>
+            </div>
+        </div>
+
+        <!-- GitHub Mode -->
+        <div id="github-mode" class="mode-content">
+            <div class="github-section">
+                <div class="input-group">
+                    <label for="repo-url">GitHub Repository URL</label>
+                    <input
+                        type="text"
+                        id="repo-url"
+                        placeholder="https://github.com/username/repo"
+                        class="input-field"
+                    >
+                    <button id="fetch-btn" class="btn-secondary">Fetch Repository</button>
+                </div>
+
+                <div id="file-list" class="file-list hidden">
+                    <h3>Select Files to Analyze</h3>
+                    <div id="files-container"></div>
+                    <button id="analyze-btn" class="btn-primary">🚀 Analyze Selected Files</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Results Section -->
+        <div id="results-section" class="results-section hidden">
+            <div class="results-header">
+                <h2>📊 Analysis Results</h2>
+                <button id="download-btn" class="btn-secondary">📥 Download Report</button>
+            </div>
+            <div id="results-content" class="results-content"></div>
+        </div>
+
+        <!-- Loading Overlay -->
+        <div id="loading-overlay" class="loading-overlay hidden">
+            <div class="spinner"></div>
+            <p id="loading-text">Analyzing code...</p>
+        </div>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>

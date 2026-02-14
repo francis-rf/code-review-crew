@@ -1,109 +1,125 @@
-# Code Review Crew 🤖🔎
+# AI Code Review Crew
 
-I built this multi-agent system to solve a problem I constantly face: catching subtle bugs and security flaws _before_ they become production nightmares.
+![Python](https://img.shields.io/badge/python-3.8+-blue.svg)
+![CrewAI](https://img.shields.io/badge/CrewAI-latest-green.svg)
+![FastAPI](https://img.shields.io/badge/FastAPI-latest-green.svg)
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
 
-Originally, this was just a CLI tool, but **I recently overhauled it** to include a full **Streamlit Web UI** and **GitHub Repository Integration**. Now, instead of manually running scripts, I can just paste a repo URL or upload a file and let the agents go to work.
+A multi-agent AI system for automated code review. Five specialized agents collaborate to analyze Python code for bugs, security vulnerabilities, performance issues, and documentation quality.
 
----
+## 🤖 The Agents
 
-## 🚀 Why I Built This
+1. **Code Analyst** — Identifies logical errors, edge cases, and exception handling
+2. **Security Expert** — Scans for OWASP Top 10 vulnerabilities and security flaws
+3. **Performance Optimizer** — Detects algorithmic bottlenecks and inefficient patterns
+4. **Documentation Specialist** — Reviews docstrings and code comments
+5. **Quality Assurance** — Compiles final report with recommendations
 
-I wanted to see if specialized AI agents could work together like a real code review team. Turns out, they're surprisingly good at it.
+## 🎯 Features
 
-- **The Problem**: I often miss things like checking for empty lists or subtle SQL injection risks when I'm tired.
-- **The Solution**: A "crew" of agents where each one wears a specific hat (Security, Performance, Bug Hunting).
+- **Dark Mode UI** — Modern FastAPI interface with drag-and-drop file upload
+- **GitHub Integration** — Clone and analyze public repositories directly
+- **Real-time Agent Status** — See which agent is currently analyzing your code
+- **Detailed Reports** — Markdown reports with severity levels, line numbers, and suggested fixes
+- **Multi-Agent Workflow** — Sequential task execution with context sharing
 
----
+## 📁 Project Structure
 
-## ✨ New Features I Added
+```
+3.Crew_AI_projects/
+├── app.py                 # FastAPI application
+├── src/
+│   ├── crew.py           # CrewAI orchestration logic
+│   ├── logger.py         # Logging configuration
+│   ├── config/
+│   │   ├── agents.yaml   # Agent definitions
+│   │   ├── tasks.yaml    # Task definitions
+│   │   └── settings.py   # Application settings
+│   └── static/           # Frontend
+│       ├── index.html    # Main UI
+│       ├── app.js        # JavaScript
+│       └── style.css     # Dark mode styling
+├── examples/             # Sample files for testing
+├── output/               # Generated reports
+├── logs/                 # Application logs
+└── requirements.txt      # Python dependencies
+```
 
-### 🖥️ Interactive Web UI
-
-I realized running CLI commands wasn't the best experience effectively, so I built a **Streamlit interface**.
-
-- **Upload Files Directly**: Drag and drop python files for instant analysis.
-- **Visual Reports**: See risk scores and issues formatted nicely, not just raw text.
-
-### 🔗 GitHub Integration
-
-I added a feature to **pull code directly from GitHub**.
-
-- Paste any public repository URL.
-- The system clones it, analyzes the structure, and lets you pick specific files to review.
-- Saves me the hassle of manually downloading files just to check them.
-
----
-
-## 🧠 The Crew (My Agents)
-
-I set up 4 different agents to mimic a human review process:
-
-1.  **Bug Detector**: Looks for logical errors, edge cases, and exception handling issues. Basically looks for things that will crash the app.
-2.  **Security Analyzer**: Scans for vulnerabilities like SQL injection, hardcoded secrets, and XSS. I based its rules on OWASP guidelines.
-3.  **Performance Analyzer**: Checks for algorithmic bottlenecks and inefficient loops.
-4.  **Documentation Analyzer**: Reviews docstrings and then compiles the final "Senior Engineer" style report.
-
----
-
-## 🛠️ Getting Started
+## 🚀 Getting Started
 
 ### Prerequisites
 
 - Python 3.8+
-- An API key (OpenAI or Anthropic)
+- OpenAI or Anthropic API key
 
 ### Installation
 
-```bash
-# Clone the repo
-git clone https://github.com/francis-rf/code-review-crew.git
-cd code_review_crew
+1. Clone the repository
 
-# Install dependencies
+```bash
+git clone <your-repo-url>
+cd 3.Crew_AI_projects
+```
+
+2. Install dependencies
+
+```bash
 pip install -r requirements.txt
 ```
 
-### Running the App
-
-I made it super easy to start. Just run the Streamlit app:
+3. Set up environment variables
 
 ```bash
-streamlit run src/app.py
+cp .env.example .env
+# Edit .env and add your OPENAI_API_KEY or ANTHROPIC_API_KEY
 ```
 
-Then open `http://localhost:8501` in your browser.
+## 💻 Usage
 
----
+### Running the Application
 
-## 📂 Project Structure
-
-Here's how I organized the code:
-
-```
-code_review_crew/
-├── src/
-│   ├── app.py                  # The new Streamlit Web UI entry point
-│   ├── crew.py                 # The core CrewAI orchestration logic
-│   ├── config/
-│       ├── agents.yaml         # Where I define the agent "personalities"
-│       └── tasks.yaml          # The specific instructions for each agent
-├── examples/                   # Test files I use to verify the agents
-├── output/                     # Generated reports go here
-└── requirements.txt
+```bash
+python app.py
 ```
 
----
+The application will start on `http://localhost:8000`
 
-## 💡 What I Learned
+## 📡 API Endpoints
 
-Building this taught me a lot about **Agentic Workflows**:
+- `GET /` - Serve main HTML page
+- `GET /health` - Health check endpoint
+- `POST /api/review/upload` - Review uploaded Python file
+- `POST /api/review/github` - Review GitHub repository
+- `GET /api/files/list` - List Python files in a GitHub repository
+  
+## 📸 Screenshots
 
-- **Context is King**: Agents need clear, specific goals (YAML config) or they get sidetracked.
-- **UI Matters**: Moving from CLI to Streamlit made the tool 10x more usable for quick checks.
-- **Handling Large Codebases**: Integrating GitHub cloning was tricky (keeping it efficient), but having agents read directly from repo files is a game changer.
+![Application Interface](screenshots/image.png)
+_Code Review Interface showing code analogy_
 
----
+### Upload a File
 
-## 🛡️ License
+1. Select "Upload File" mode
+2. Drop your `.py` file
+3. Click "Start Code Review"
+4. Download the generated report
 
-MIT. Feel free to use this code, break it, and learn from it!
+### Review a GitHub Repo
+
+1. Select "GitHub Repository" mode
+2. Paste a public repo URL
+3. Select files to analyze
+4. Click "Analyze Selected Files"
+
+## 🐳 Docker Deployment
+
+### Build and Run
+
+```bash
+docker build -t ai-code-review .
+docker run -p 8000:8000 --env-file .env ai-code-review
+```
+
+## 📄 License
+
+MIT License

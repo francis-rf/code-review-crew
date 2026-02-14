@@ -29,12 +29,14 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 from dotenv import load_dotenv
 
-# Load .env explicitly from project root before importing crewai
-env_path = Path(__file__).parent.parent / '.env'
-load_dotenv(dotenv_path=env_path, override=True)
+load_dotenv(override=True)
 
 import yaml
 from crewai import Agent, Crew, Process, Task
+from .logger import setup_logger
+
+logger = setup_logger(__name__)
+
 
 class CodeReviewCrew:
     """
@@ -77,7 +79,7 @@ class CodeReviewCrew:
         if code_content:
             self.code_content = code_content
             self.code_lines = self.code_content.splitlines()
-            print(f"✓ Loaded {len(self.code_lines)} lines from direct content")
+            logger.info("Loaded %d lines from direct content", len(self.code_lines))
         else:
             # Validate input file
             if not os.path.exists(code_file_path):
@@ -93,7 +95,7 @@ class CodeReviewCrew:
                 self.code_content = f.read()
                 self.code_lines = self.code_content.splitlines()
 
-            print(f"✓ Loaded {len(self.code_lines)} lines of code")
+            logger.info("Loaded %d lines of code", len(self.code_lines))
 
         # Create output directory
         os.makedirs(output_dir, exist_ok=True)
@@ -114,9 +116,7 @@ class CodeReviewCrew:
         self.agents = self._create_agents()
         self.tasks = self._create_tasks()
 
-        print(f"✓ Code Review Crew initialized")
-        print(f"  File: {self.code_file_name}")
-        print(f"  Output: {self.output_dir}/")
+        logger.info("Code Review Crew initialized | File: %s | Output: %s/", self.code_file_name, self.output_dir)
 
     def _load_yaml(self, file_path: Path) -> dict:
         """Load and parse YAML configuration file."""
@@ -152,7 +152,7 @@ class CodeReviewCrew:
                 memory=config.get('memory', True)
             )
 
-        print(f"✓ Created {len(agents)} agents")
+        logger.info("Created %d agents", len(agents))
         return agents
 
     def _create_tasks(self) -> List[Task]:
@@ -216,7 +216,7 @@ class CodeReviewCrew:
             task_objects[task_name] = task
             tasks.append(task)
 
-        print(f"✓ Created {len(tasks)} tasks with dependencies")
+        logger.info("Created %d tasks with dependencies", len(tasks))
         return tasks
 
     def run(self) -> Any:
@@ -226,12 +226,7 @@ class CodeReviewCrew:
         Returns:
             CrewOutput: Result containing the comprehensive code review report
         """
-        print("\n" + "="*70)
-        print("🔍 STARTING CODE REVIEW")
-        print("="*70)
-        print(f"File: {self.code_file_name}")
-        print(f"Time: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
-        print("="*70 + "\n")
+        logger.info("Starting code review for: %s", self.code_file_name)
 
         try:
             # Create crew
@@ -243,22 +238,17 @@ class CodeReviewCrew:
             )
 
             # Execute review
-            print("🤖 Agents are analyzing your code...\n")
+            logger.info("Agents are analyzing your code...")
             result = crew.kickoff()
 
             # Save results
             self._save_results(result)
-
-            print("\n" + "="*70)
-            print("✅ CODE REVIEW COMPLETE")
-            print("="*70)
-            print(f"Report saved to: {self.output_dir}/")
-            print("="*70 + "\n")
+            logger.info("Code review complete | Report saved to: %s/", self.output_dir)
 
             return result
 
         except Exception as e:
-            print(f"\n❌ Error during code review: {e}")
+            logger.error("Error during code review: %s", e)
             raise
 
     def _save_results(self, result: Any) -> None:
@@ -279,14 +269,14 @@ class CodeReviewCrew:
             result_text = str(result.raw) if hasattr(result, 'raw') else str(result)
             f.write(result_text)
 
-        print(f"\n✓ Report saved: {report_path}")
+        logger.info("Report saved: %s", report_path)
 
         # Also save raw output for debugging
         raw_path = f"{self.output_dir}/{base_name}_raw_{timestamp}.txt"
         with open(raw_path, 'w', encoding='utf-8') as f:
             f.write(result_text)
 
-        print(f"✓ Raw output saved: {raw_path}")
+        logger.info("Raw output saved: %s", raw_path)
 
 
 def main():
@@ -337,21 +327,19 @@ Examples:
 
         result = crew.run()
 
-        print("\n💡 Review complete! Check the output directory for the full report.")
+        logger.info("Review complete. Check the output directory for the full report.")
 
     except FileNotFoundError as e:
-        print(f"\n❌ Error: {e}")
+        logger.error("File not found: %s", e)
         sys.exit(1)
     except ValueError as e:
-        print(f"\n❌ Error: {e}")
+        logger.error("Invalid input: %s", e)
         sys.exit(1)
     except KeyboardInterrupt:
-        print("\n\n⚠️  Review cancelled by user")
+        logger.warning("Review cancelled by user")
         sys.exit(130)
     except Exception as e:
-        print(f"\n❌ Unexpected error: {e}")
-        import traceback
-        traceback.print_exc()
+        logger.error("Unexpected error: %s", e, exc_info=True)
         sys.exit(1)
 
 
