@@ -1,0 +1,15 @@
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+.git
+.gitignore
+logs/
+output/
+.env
+*.log
+.DS_Store
+screenshots/
+examples/
