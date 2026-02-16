@@ -162,7 +162,6 @@ aws lambda create-function \
 - **Serverless**: No infrastructure management
 - **AI workloads**: Large memory (10GB) supports CrewAI agents
 
-```
 
 ## 📄 License
 
