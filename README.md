@@ -27,7 +27,8 @@ A multi-agent AI system for automated code review. Five specialized agents colla
 
 ```
 3.Crew_AI_projects/
-├── app.py                 # FastAPI application
+├── app.py                # FastAPI application
+├── lambda_handler.py     # lambda_handler
 ├── src/
 │   ├── crew.py           # CrewAI orchestration logic
 │   ├── logger.py         # Logging configuration
@@ -111,13 +112,56 @@ _Code Review Interface showing code analogy_
 3. Select files to analyze
 4. Click "Analyze Selected Files"
 
-## 🐳 Docker Deployment
+## ☁️ AWS Lambda Deployment
 
-### Build and Run
+Deployed as a serverless container on **AWS Lambda + API Gateway** for cost-effective, auto-scaling code review.
 
+### Architecture
+
+- **AWS Lambda**: Runs FastAPI app in container (10GB memory, 15min timeout for AI processing)
+- **Amazon ECR**: Stores Docker image (Lambda pulls on cold start)
+- **API Gateway**: HTTP endpoint routes requests to Lambda function
+- **Environment Variables**: API keys (OpenAI/Anthropic) stored in Lambda configuration
+
+### Deployment Steps
+
+1. **Build and push Docker image to ECR:**
 ```bash
-docker build -t ai-code-review .
-docker run -p 8000:8000 --env-file .env ai-code-review
+# Create ECR repository
+aws ecr create-repository --repository-name crew-ai-lambda --region us-east-1
+
+# Login to ECR
+aws ecr get-login-password --region us-east-1 | docker login --username AWS --password-stdin <AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com
+
+# Build image
+docker build --platform linux/amd64 -t crew-ai-lambda .
+
+# Tag and push
+docker tag crew-ai-lambda:latest <AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/crew-ai-lambda:latest
+docker push <AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/crew-ai-lambda:latest
+```
+
+2. **Create Lambda function:**
+```bash
+aws lambda create-function \
+  --function-name crew-ai-code-review \
+  --package-type Image \
+  --code ImageUri=<AWS_ACCOUNT_ID>.dkr.ecr.us-east-1.amazonaws.com/crew-ai-lambda:latest \
+  --role arn:aws:iam::<AWS_ACCOUNT_ID>:role/lambda-execution-role \
+  --timeout 900 \
+  --memory-size 10240 \
+  --environment Variables={OPENAI_API_KEY=your_key,LLM_PROVIDER=openai}
+```
+
+3. **Create API Gateway HTTP API and integrate with Lambda**
+
+### Why Lambda for This Project?
+
+- **Cost-effective**: Pay only when code is analyzed (no idle server costs)
+- **Auto-scaling**: Handles concurrent requests automatically
+- **Serverless**: No infrastructure management
+- **AI workloads**: Large memory (10GB) supports CrewAI agents
+
 ```
 
 ## 📄 License
