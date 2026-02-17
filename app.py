@@ -41,33 +41,18 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount static files (only if not running in Lambda)
-is_lambda = os.getenv("AWS_LAMBDA_FUNCTION_NAME") is not None
-if not is_lambda and settings.STATIC_DIR.exists():
+# Mount static files
+if settings.STATIC_DIR.exists():
     app.mount("/static", StaticFiles(directory=str(settings.STATIC_DIR)), name="static")
 
 
 @app.get("/")
 async def read_root():
     """Serve the main HTML page"""
-    # Check if running in Lambda
-    is_lambda = os.getenv("AWS_LAMBDA_FUNCTION_NAME") is not None
-
-    if not is_lambda:
-        html_file = settings.STATIC_DIR / "index.html"
-        if html_file.exists():
-            return FileResponse(html_file)
-
-    return {
-        "message": f"{settings.APP_NAME} is running",
-        "version": settings.APP_VERSION,
-        "endpoints": {
-            "health": "/health",
-            "review_upload": "/api/review/upload",
-            "review_github": "/api/review/github",
-            "list_files": "/api/files/list"
-        }
-    }
+    html_file = settings.STATIC_DIR / "index.html"
+    if html_file.exists():
+        return FileResponse(html_file)
+    return {"message": f"{settings.APP_NAME} is running"}
 
 
 @app.get("/health")

@@ -81,21 +81,8 @@ class Settings:
     @classmethod
     def create_directories(cls) -> None:
         """Create necessary directories"""
-        # Use /tmp for Lambda (only writable directory)
-        is_lambda = os.getenv("AWS_LAMBDA_FUNCTION_NAME") is not None
-
-        if is_lambda:
-            cls.OUTPUT_DIR = Path("/tmp/output")
-            cls.LOGS_DIR = Path("/tmp/logs")
-
-        try:
-            cls.OUTPUT_DIR.mkdir(exist_ok=True)
-            cls.LOGS_DIR.mkdir(exist_ok=True)
-            if not is_lambda:
-                cls.STATIC_DIR.mkdir(exist_ok=True)
-        except Exception as e:
-            # Lambda might fail to create dirs, ignore
-            pass
+        cls.OUTPUT_DIR.mkdir(exist_ok=True)
+        cls.LOGS_DIR.mkdir(exist_ok=True)
 
 
 

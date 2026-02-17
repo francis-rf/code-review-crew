@@ -1,11 +1,20 @@
-FROM public.ecr.aws/lambda/python:3.12
+FROM python:3.12-slim
+
+# Install git for GitHub integration
+RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
+WORKDIR /app
 
 # Copy requirements and install dependencies
-COPY requirements.txt ${LAMBDA_TASK_ROOT}
+COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy application code
-COPY . ${LAMBDA_TASK_ROOT}
+COPY . .
 
-# Set the Lambda handler
-CMD ["lambda_handler.handler"]
+# Expose port
+EXPOSE 8000
+
+# Run the application
+CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
